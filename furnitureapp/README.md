@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Калькулятор Фурнітури
 
-## Getting Started
+Веб-додаток для розрахунку та замовлення фурнітури для виробництва меблів.
 
-First, run the development server:
+## Функціонал
 
+- ✅ Форми з автодоповненням для вибору фурнітури
+- ✅ Обов'язкові поля: Стільниці, Направляючі, Амортизатори, Кріплення
+- ✅ Додаткові категорії фурнітури
+- ✅ Управління списком замовлення (додавання, видалення, зміна кількості)
+- ✅ Автоматичний розрахунок сум
+- ✅ Експорт замовлення:
+  - Поділитися в Viber
+  - Завантажити як зображення
+  - Завантажити CSV файл
+- ✅ Адаптивний дизайн для всіх пристроїв
+
+## Встановлення та запуск
+
+1. Встановіть залежності:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Запустіть сервер розробки:
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Відкрийте [http://localhost:3000](http://localhost:3000) у браузері
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Структура проекту
 
-## Learn More
+```
+furnitureapp/
+├── public/
+│   └── furniture.json          # База даних фурнітури
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx          # Головний layout
+│   │   ├── page.tsx            # Головна сторінка
+│   │   └── globals.css         # Глобальні стилі
+│   ├── components/
+│   │   ├── AutocompleteInput.tsx   # Поле з автодоповненням
+│   │   ├── OrderList.tsx           # Таблиця замовлень
+│   │   └── ExportButtons.tsx       # Кнопки експорту
+│   └── types/
+│       └── furniture.ts        # TypeScript типи
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Технології
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Next.js 16** - React framework
+- **TypeScript** - Типізація
+- **Tailwind CSS** - Стилізація
+- **React Hooks** - Управління станом
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Використання
 
-## Deploy on Vercel
+1. **Заповніть обов'язкові поля** (позначені зірочкою):
+   - Стільниці
+   - Висувні системи (направляючі)
+   - Підйомні механізми та амортизатори
+   - Кріплення
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. **Додайте додаткові позиції** за потреби
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Перегляньте список замовлення** з автоматичним розрахунком сум
+
+4. **Експортуйте замовлення**:
+   - Поділіться в Viber для швидкого надсилання
+   - Завантажте як зображення для друку
+   - Завантажте CSV для роботи в Excel
+
+## Редагування даних фурнітури
+
+Відредагуйте файл `public/furniture.json` для додавання або зміни позицій фурнітури.
+
+Формат:
+```json
+{
+  "Категорія": [
+    {
+      "name": "Назва товару",
+      "unit": "одиниця виміру",
+      "price": ціна
+    }
+  ]
+}
+```
