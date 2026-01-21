@@ -81,13 +81,29 @@ export default function OrderList({
                 </td>
                 <td className="px-4 py-3 text-center w-24">
                   <input
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
                     value={order.quantity}
+                    onFocus={(e) => {
+                      e.target.value = ""
+                      e.target.select()
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Delete" || e.key === "Backspace") {
+                        e.currentTarget.value = ""
+                      }
+                    }}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value)
-                      if (value > 0) {
-                        onQuantityChange(index, value)
+                      const value = e.target.value
+                      if (value === "") return
+                      const numValue = parseInt(value)
+                      if (!isNaN(numValue) && numValue > 0) {
+                        onQuantityChange(index, numValue)
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value === "") {
+                        onQuantityChange(index, 1)
                       }
                     }}
                     className="w-24 px-3 py-2 text-center border border-gray-500 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white text-gray-900 placeholder-gray-500"
@@ -207,13 +223,29 @@ export default function OrderList({
                   </label>
                   <div className="flex items-center gap-2">
                     <input
-                      type="number"
-                      min="1"
+                      type="text"
+                      inputMode="numeric"
                       value={order.quantity}
+                      onFocus={(e) => {
+                        e.target.value = ""
+                        e.target.select()
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Delete" || e.key === "Backspace") {
+                          e.currentTarget.value = ""
+                        }
+                      }}
                       onChange={(e) => {
-                        const value = parseInt(e.target.value)
-                        if (value > 0) {
-                          onQuantityChange(index, value)
+                        const value = e.target.value
+                        if (value === "") return
+                        const numValue = parseInt(value)
+                        if (!isNaN(numValue) && numValue > 0) {
+                          onQuantityChange(index, numValue)
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (e.target.value === "") {
+                          onQuantityChange(index, 1)
                         }
                       }}
                       className="w-20 px-3 py-2 text-center text-sm border border-gray-500 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white text-gray-900"

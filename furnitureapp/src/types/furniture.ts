@@ -14,3 +14,11 @@ export interface OrderItem extends FurnitureItem {
   total: number
   includePrice: boolean
 }
+
+export interface Project {
+  id: string
+  name: string
+  orders: OrderItem[]
+  createdAt: string
+  updatedAt: string
+}

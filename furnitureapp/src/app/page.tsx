@@ -1,16 +1,27 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import AutocompleteInput from "@/components/AutocompleteInput"
 import OrderList from "@/components/OrderList"
 import ExportButtons from "@/components/ExportButtons"
-import { FurnitureData, FurnitureItem, OrderItem } from "@/types/furniture"
+import SaveProjectDialog from "@/components/SaveProjectDialog"
+import {
+  FurnitureData,
+  FurnitureItem,
+  OrderItem,
+  Project,
+} from "@/types/furniture"
+import { FolderOpen } from "lucide-react"
 
 export default function Home() {
   const [furnitureData, setFurnitureData] = useState<FurnitureData>({})
   const [orders, setOrders] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
   const [orderName, setOrderName] = useState("")
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     fetch("/furniture.json")
@@ -23,6 +34,19 @@ export default function Home() {
         console.error("Error loading furniture data:", error)
         setLoading(false)
       })
+
+    const loadedProject = localStorage.getItem("loadedProject")
+    if (loadedProject) {
+      try {
+        const project: Project = JSON.parse(loadedProject)
+        setOrders(project.orders)
+        setOrderName(project.name)
+        setCurrentProjectId(project.id)
+        localStorage.removeItem("loadedProject")
+      } catch (error) {
+        console.error("Error loading project:", error)
+      }
+    }
   }, [])
 
   const handleAddItem = (item: FurnitureItem, category: string) => {
@@ -76,6 +100,33 @@ export default function Home() {
   const handleClearAll = () => {
     if (confirm("Ви впевнені, що хочете очистити весь список?")) {
       setOrders([])
+      setCurrentProjectId(null)
+    }
+  }
+
+  const handleSaveProject = async () => {
+    try {
+      const projectName = orderName.trim() || "Без назви"
+      const method = currentProjectId ? "PUT" : "POST"
+      const body = currentProjectId
+        ? { id: currentProjectId, name: projectName, orders }
+        : { name: projectName, orders }
+
+      const response = await fetch("/api/projects", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+
+      if (response.ok) {
+        const project = await response.json()
+        setCurrentProjectId(project.id)
+      } else {
+        throw new Error("Failed to save project")
+      }
+    } catch (error) {
+      console.error("Error saving project:", error)
+      throw error
     }
   }
 
@@ -104,7 +155,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={() => router.push("/projects")}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm flex items-center gap-2"
+          >
+            <FolderOpen size={18} />
+            Мої проекти
+          </button>
           <a
             href="/admin"
             className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium text-sm"
@@ -199,10 +257,27 @@ export default function Home() {
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">
               Експорт замовлення
             </h2>
-            <ExportButtons orders={orders} orderName={orderName} />
+            <div className="space-y-4">
+              <button
+                onClick={() => setShowSaveDialog(true)}
+                className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-lg flex items-center justify-center gap-2"
+              >
+                <FolderOpen size={20} />
+                {currentProjectId ? "Оновити проект" : "Зберегти проект"}
+              </button>
+              <ExportButtons orders={orders} orderName={orderName} />
+            </div>
           </div>
         )}
       </div>
+
+      <SaveProjectDialog
+        isOpen={showSaveDialog}
+        onClose={() => setShowSaveDialog(false)}
+        onSave={handleSaveProject}
+        defaultName={orderName || "Новий проект"}
+        orders={orders}
+      />
     </div>
   )
 }
