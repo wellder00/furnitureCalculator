@@ -37,7 +37,12 @@ async function readFromKV(): Promise<Project[]> {
   const data = await response.json()
   if (!data.result) return []
   try {
-    return JSON.parse(data.result)
+    const parsed = JSON.parse(data.result)
+    if (!Array.isArray(parsed)) {
+      console.error("KV data is not an array, resetting to empty")
+      return []
+    }
+    return parsed
   } catch (error) {
     console.error("Invalid projects payload in KV", error)
     return []
@@ -47,14 +52,16 @@ async function readFromKV(): Promise<Project[]> {
 async function writeToKV(projects: Project[]): Promise<void> {
   if (!canUseKV()) return
 
-  const response = await fetch(`${KV_URL}/set/${encodeURIComponent(KV_KEY)}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${KV_TOKEN}`,
-      "Content-Type": "application/json",
+  const value = JSON.stringify(projects)
+  const response = await fetch(
+    `${KV_URL}/set/${encodeURIComponent(KV_KEY)}/${encodeURIComponent(value)}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${KV_TOKEN}`,
+      },
     },
-    body: JSON.stringify({ value: JSON.stringify(projects) }),
-  })
+  )
 
   if (!response.ok) {
     throw new Error("Failed to write projects to KV")
