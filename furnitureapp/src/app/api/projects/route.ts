@@ -1,33 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { promises as fs } from "fs"
-import path from "path"
+import { readProjects, writeProjects } from "@/lib/projectStorage"
 import { Project } from "@/types/furniture"
-
-const PROJECTS_FILE = path.join(process.cwd(), "data", "projects.json")
-
-async function ensureDataDirectory() {
-  const dataDir = path.join(process.cwd(), "data")
-  try {
-    await fs.access(dataDir)
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true })
-  }
-}
-
-async function readProjects(): Promise<Project[]> {
-  try {
-    await ensureDataDirectory()
-    const data = await fs.readFile(PROJECTS_FILE, "utf-8")
-    return JSON.parse(data)
-  } catch {
-    return []
-  }
-}
-
-async function writeProjects(projects: Project[]): Promise<void> {
-  await ensureDataDirectory()
-  await fs.writeFile(PROJECTS_FILE, JSON.stringify(projects, null, 2), "utf-8")
-}
 
 export async function GET() {
   try {
@@ -37,7 +10,7 @@ export async function GET() {
     console.error("Error reading projects:", error)
     return NextResponse.json(
       { error: "Failed to read projects" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -63,7 +36,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating project:", error)
     return NextResponse.json(
       { error: "Failed to create project" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -91,7 +64,7 @@ export async function PUT(request: NextRequest) {
     console.error("Error updating project:", error)
     return NextResponse.json(
       { error: "Failed to update project" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -118,7 +91,7 @@ export async function DELETE(request: NextRequest) {
     console.error("Error deleting project:", error)
     return NextResponse.json(
       { error: "Failed to delete project" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

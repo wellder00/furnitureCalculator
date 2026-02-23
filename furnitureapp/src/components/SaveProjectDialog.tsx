@@ -30,6 +30,7 @@ export default function SaveProjectDialog({
       onClose()
     } catch (error) {
       console.error("Error saving project:", error)
+      alert("Помилка при збереженні проекту")
     } finally {
       setSaving(false)
     }
