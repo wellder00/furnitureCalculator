@@ -19,16 +19,29 @@ export default function AdminPage() {
   const [saveStatus, setSaveStatus] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch("/furniture.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setFurnitureData(data)
+    async function loadFurniture() {
+      try {
+        // First try to load from KV via API
+        const apiRes = await fetch("/api/furniture")
+        const apiData = await apiRes.json()
+
+        if (apiData && Object.keys(apiData).length > 0) {
+          setFurnitureData(apiData)
+          setLoading(false)
+          return
+        }
+
+        // Fallback to static file
+        const staticRes = await fetch("/furniture.json")
+        const staticData = await staticRes.json()
+        setFurnitureData(staticData)
         setLoading(false)
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error loading furniture data:", error)
         setLoading(false)
-      })
+      }
+    }
+    loadFurniture()
   }, [])
 
   const handleAddItem = async () => {
@@ -84,7 +97,7 @@ export default function AdminPage() {
 
     const updatedData = { ...furnitureData }
     updatedData[category] = updatedData[category].filter(
-      (_, idx) => idx !== itemIndex
+      (_, idx) => idx !== itemIndex,
     )
 
     try {

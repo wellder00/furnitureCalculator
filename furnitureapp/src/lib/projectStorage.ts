@@ -6,6 +6,7 @@ const PROJECTS_FILE = path.join(process.cwd(), "data", "projects.json")
 const KV_URL = process.env.KV_REST_API_URL
 const KV_TOKEN = process.env.KV_REST_API_TOKEN
 const KV_KEY = process.env.PROJECTS_KV_KEY || "furniture:projects"
+const FURNITURE_KV_KEY = "furniture:data"
 
 async function ensureDataDirectory() {
   const dataDir = path.dirname(PROJECTS_FILE)
@@ -107,4 +108,83 @@ export async function writeProjects(projects: Project[]): Promise<void> {
     }
   }
   await writeToFile(projects)
+}
+
+// Furniture data storage functions
+export interface FurnitureItem {
+  name: string
+  unit: string
+  price: number
+}
+
+export interface FurnitureData {
+  [category: string]: FurnitureItem[]
+}
+
+async function readFurnitureFromKV(): Promise<FurnitureData | null> {
+  if (!canUseKV()) return null
+
+  try {
+    const response = await fetch(
+      `${KV_URL}/get/${encodeURIComponent(FURNITURE_KV_KEY)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${KV_TOKEN}`,
+        },
+        cache: "no-store",
+      },
+    )
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+    if (!data.result) return null
+
+    const parsed = JSON.parse(data.result)
+    if (typeof parsed !== "object" || parsed === null) {
+      return null
+    }
+    return parsed as FurnitureData
+  } catch (error) {
+    console.error("Error reading furniture from KV:", error)
+    return null
+  }
+}
+
+async function writeFurnitureToKV(data: FurnitureData): Promise<boolean> {
+  if (!canUseKV()) return false
+
+  try {
+    const value = JSON.stringify(data)
+    const response = await fetch(
+      `${KV_URL}/set/${encodeURIComponent(FURNITURE_KV_KEY)}/${encodeURIComponent(value)}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${KV_TOKEN}`,
+        },
+      },
+    )
+
+    return response.ok
+  } catch (error) {
+    console.error("Error writing furniture to KV:", error)
+    return false
+  }
+}
+
+export async function readFurniture(): Promise<FurnitureData | null> {
+  if (canUseKV()) {
+    return await readFurnitureFromKV()
+  }
+  return null
+}
+
+export async function writeFurniture(data: FurnitureData): Promise<boolean> {
+  if (canUseKV()) {
+    return await writeFurnitureToKV(data)
+  }
+  return false
 }

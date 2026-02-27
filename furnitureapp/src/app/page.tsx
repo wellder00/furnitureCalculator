@@ -24,16 +24,29 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    fetch("/furniture.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setFurnitureData(data)
+    async function loadFurniture() {
+      try {
+        // First try to load from KV via API
+        const apiRes = await fetch("/api/furniture")
+        const apiData = await apiRes.json()
+
+        if (apiData && Object.keys(apiData).length > 0) {
+          setFurnitureData(apiData)
+          setLoading(false)
+          return
+        }
+
+        // Fallback to static file
+        const staticRes = await fetch("/furniture.json")
+        const staticData = await staticRes.json()
+        setFurnitureData(staticData)
         setLoading(false)
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error loading furniture data:", error)
         setLoading(false)
-      })
+      }
+    }
+    loadFurniture()
 
     const loadedProject = localStorage.getItem("loadedProject")
     if (loadedProject) {
@@ -78,7 +91,7 @@ export default function Home() {
       const includePrice =
         updates.includePrice !== undefined
           ? updates.includePrice
-          : merged.includePrice ?? true
+          : (merged.includePrice ?? true)
 
       const price = updates.price ?? merged.price
       const quantity = updates.quantity ?? merged.quantity
@@ -149,7 +162,7 @@ export default function Home() {
   ]
 
   const optionalCategories = Object.keys(furnitureData).filter(
-    (cat) => !requiredCategories.includes(cat)
+    (cat) => !requiredCategories.includes(cat),
   )
 
   return (
