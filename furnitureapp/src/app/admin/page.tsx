@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2 } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, ChevronDown } from "lucide-react"
 import { FurnitureData, FurnitureItem } from "@/types/furniture"
 
 export default function AdminPage() {
@@ -17,6 +17,10 @@ export default function AdminPage() {
   })
   const [newCategory, setNewCategory] = useState("")
   const [saveStatus, setSaveStatus] = useState<string | null>(null)
+  const [categoryFilter, setCategoryFilter] = useState("")
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(
+    {},
+  )
 
   useEffect(() => {
     async function loadFurniture() {
@@ -129,6 +133,18 @@ export default function AdminPage() {
   }
 
   const categories = Object.keys(furnitureData).sort()
+  const displayedCategories = (
+    categoryFilter
+      ? categories.filter((cat) => cat === categoryFilter)
+      : categories
+  ).filter((cat) => (furnitureData[cat]?.length || 0) > 0)
+
+  const toggleCategory = (category: string) => {
+    setOpenCategories((prev) => ({
+      ...prev,
+      [category]: !(prev[category] ?? false),
+    }))
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -263,42 +279,88 @@ export default function AdminPage() {
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">
             Поточна база даних
           </h2>
-          <div className="space-y-6">
-            {categories.map((category) => (
-              <div
-                key={category}
-                className="border border-gray-200 rounded-lg p-4"
-              >
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                  {category} ({furnitureData[category].length})
-                </h3>
-                <div className="space-y-2">
-                  {furnitureData[category].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Оберіть категорію для перегляду
+            </label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white text-gray-900"
+            >
+              <option value="">Усі категорії</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {displayedCategories.length === 0 ? (
+            <div className="text-center text-gray-500 bg-gray-50 rounded-lg py-6">
+              Немає категорій для відображення. Додайте елементи або змініть
+              фільтр.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {displayedCategories.map((category) => {
+                const isOpen = openCategories[category] ?? false
+                return (
+                  <div
+                    key={category}
+                    className="border border-gray-200 rounded-lg overflow-hidden"
+                  >
+                    <button
+                      onClick={() => toggleCategory(category)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
                     >
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">
-                          {item.name}
+                      <div className="text-left">
+                        <div className="text-base font-semibold text-gray-900">
+                          {category}
                         </div>
-                        <div className="text-sm text-gray-600">
-                          {item.price.toFixed(2)} грн / {item.unit}
+                        <div className="text-xs text-gray-500">
+                          {furnitureData[category].length} позицій
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteItem(category, idx)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Видалити"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+                      <ChevronDown
+                        size={20}
+                        className={`text-gray-500 transition-transform ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    {isOpen && (
+                      <div className="p-4 space-y-2 max-h-80 overflow-y-auto">
+                        {furnitureData[category].map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-lg hover:bg-blue-50 transition-colors"
+                          >
+                            <div className="flex-1 pr-4">
+                              <div className="font-medium text-gray-900">
+                                {item.name}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {item.price.toFixed(2)} грн / {item.unit}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteItem(category, idx)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Видалити"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
