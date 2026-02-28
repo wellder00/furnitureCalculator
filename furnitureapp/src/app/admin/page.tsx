@@ -162,7 +162,7 @@ export default function AdminPage() {
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">
             Додати нову категорію
           </h2>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <input
               type="text"
               value={newCategory}
@@ -172,7 +172,7 @@ export default function AdminPage() {
             />
             <button
               onClick={handleAddCategory}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <Plus size={20} />
               Додати категорію

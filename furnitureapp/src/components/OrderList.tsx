@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { OrderItem } from "@/types/furniture"
 import { Trash2 } from "lucide-react"
 
@@ -16,6 +17,56 @@ export default function OrderList({
   onQuantityChange,
   onUpdateItem,
 }: OrderListProps) {
+  const [quantityInputs, setQuantityInputs] = useState<string[]>([])
+
+  const formatQuantityValue = (quantity: number) => {
+    const str = quantity.toString()
+    return str.includes(".") ? str.replace(".", ",") : str
+  }
+
+  useEffect(() => {
+    setQuantityInputs(
+      orders.map((order) => formatQuantityValue(order.quantity)),
+    )
+  }, [orders])
+
+  const updateQuantityInput = (value: string, index: number) => {
+    setQuantityInputs((prev) => {
+      const next = [...prev]
+      next[index] = value
+      return next
+    })
+  }
+
+  const parseQuantityValue = (value: string): number | null => {
+    if (!value.trim()) return null
+    const normalized = value.replace(/,/g, ".")
+    const num = Number(normalized)
+    if (!Number.isFinite(num) || num <= 0) return null
+    return num
+  }
+
+  const handleQuantityInputChange = (value: string, index: number) => {
+    updateQuantityInput(value, index)
+
+    const trimmed = value.trim()
+    if (trimmed === "" || /[.,]$/.test(trimmed)) {
+      return
+    }
+
+    const parsed = parseQuantityValue(value)
+    if (parsed !== null) {
+      onQuantityChange(index, parsed)
+    }
+  }
+
+  const handleQuantityInputBlur = (value: string, index: number) => {
+    const parsed = parseQuantityValue(value)
+    const nextValue = parsed !== null ? parsed : 1
+    onQuantityChange(index, nextValue)
+    updateQuantityInput(formatQuantityValue(nextValue), index)
+  }
+
   const totalSum = orders.reduce((sum, order) => sum + order.total, 0)
 
   if (orders.length === 0) {
@@ -82,30 +133,18 @@ export default function OrderList({
                 <td className="px-4 py-3 text-center w-24">
                   <input
                     type="text"
-                    inputMode="numeric"
-                    value={order.quantity}
-                    onFocus={(e) => {
-                      e.target.value = ""
-                      e.target.select()
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Delete" || e.key === "Backspace") {
-                        e.currentTarget.value = ""
-                      }
-                    }}
-                    onChange={(e) => {
-                      const value = e.target.value
-                      if (value === "") return
-                      const numValue = parseInt(value)
-                      if (!isNaN(numValue) && numValue > 0) {
-                        onQuantityChange(index, numValue)
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (e.target.value === "") {
-                        onQuantityChange(index, 1)
-                      }
-                    }}
+                    inputMode="decimal"
+                    value={
+                      quantityInputs[index] ??
+                      formatQuantityValue(order.quantity)
+                    }
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) =>
+                      handleQuantityInputChange(e.target.value, index)
+                    }
+                    onBlur={(e) =>
+                      handleQuantityInputBlur(e.target.value, index)
+                    }
                     className="w-24 px-3 py-2 text-center border border-gray-500 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white text-gray-900 placeholder-gray-500"
                   />
                   <span className="ml-2 text-xs text-gray-500">
@@ -224,30 +263,18 @@ export default function OrderList({
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
-                      inputMode="numeric"
-                      value={order.quantity}
-                      onFocus={(e) => {
-                        e.target.value = ""
-                        e.target.select()
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Delete" || e.key === "Backspace") {
-                          e.currentTarget.value = ""
-                        }
-                      }}
-                      onChange={(e) => {
-                        const value = e.target.value
-                        if (value === "") return
-                        const numValue = parseInt(value)
-                        if (!isNaN(numValue) && numValue > 0) {
-                          onQuantityChange(index, numValue)
-                        }
-                      }}
-                      onBlur={(e) => {
-                        if (e.target.value === "") {
-                          onQuantityChange(index, 1)
-                        }
-                      }}
+                      inputMode="decimal"
+                      value={
+                        quantityInputs[index] ??
+                        formatQuantityValue(order.quantity)
+                      }
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) =>
+                        handleQuantityInputChange(e.target.value, index)
+                      }
+                      onBlur={(e) =>
+                        handleQuantityInputBlur(e.target.value, index)
+                      }
                       className="w-20 px-3 py-2 text-center text-sm border border-gray-500 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white text-gray-900"
                     />
                     <span className="text-xs text-gray-500">{order.unit}</span>
